@@ -17,7 +17,8 @@
 :root[data-theme=light]{--bg:#f1f2f5; --panel:#ffffff; --panel2:#eceef2; --ink:#141821; --muted:#5b6375; --line:#d8dce3; --warn:#d62828; color-scheme:light}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--font-u)}
+body{height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--font-u)}
+header{flex:none}
 header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:12px 16px;border-bottom:1px solid var(--line)}
 @media (min-width:700px){header{padding:14px 24px}}
 .brand{display:flex;align-items:center;gap:10px;margin-right:auto}
@@ -38,17 +39,18 @@ h1{font-weight:700;font-size:clamp(1.25rem,2vw,1.6rem);letter-spacing:-.01em;lin
 .btn.icon{width:42px;padding:0;justify-content:center}
 @media (max-width:680px){.btn .lbl{display:none}.btn.hdr{width:42px;padding:0;justify-content:center}}
 
-.grid{display:grid;gap:16px;padding:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
-@media (min-width:700px){.grid{padding:24px;gap:20px}}
+/* Tímavakarnir fylla skjáinn: 1–3 í einni röð, fleiri í tveimur eða þremur röðum */
+.grid{flex:1;min-height:0;display:grid;gap:16px;padding:16px;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));grid-auto-rows:minmax(0,1fr)}
+@media (min-width:700px){.grid{padding:20px 24px 24px;gap:20px}}
 
 .timer{
-  --col:#60a5fa; container-type:inline-size; position:relative;
+  --col:#60a5fa; container-type:inline-size; position:relative; min-height:0; min-width:0;
   background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:16px;
   display:flex;flex-direction:column;align-items:center;gap:14px;transition:border-color .2s;
 }
 .timer.running{border-color:var(--col);border-color:color-mix(in srgb,var(--col) 55%,var(--line))}
 .head{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.name{font-weight:700;font-size:clamp(1.1rem,7cqi,1.9rem);line-height:1.15;margin:0;overflow-wrap:anywhere;display:flex;align-items:center;gap:9px}
+.name{font-weight:700;font-size:clamp(1.2rem,6.5cqi,3rem);line-height:1.15;margin:0;overflow-wrap:anywhere;display:flex;align-items:center;gap:9px}
 .name::before{content:'';width:.55em;height:.55em;border-radius:50%;background:var(--col);flex:none}
 .tools{display:flex;align-items:center;gap:2px;flex:none}
 .tag{font-family:var(--font-n);font-size:.85rem;color:var(--muted);white-space:nowrap;margin-right:6px}
@@ -56,20 +58,23 @@ h1{font-weight:700;font-size:clamp(1.25rem,2vw,1.6rem);letter-spacing:-.01em;lin
 .mini svg{width:18px;height:18px}
 .mini:hover{background:var(--panel2);color:var(--ink)}
 .mini:focus-visible{outline:2px solid var(--ink)}
+.ringbox{flex:1;min-height:0;width:100%;container-type:size;display:grid;place-items:center}
 .ring{
-  position:relative;width:min(100%,360px);aspect-ratio:1;border:0;padding:0;margin:0;background:none;
+  container-type:inline-size;position:relative;width:min(100cqw,100cqh);aspect-ratio:1;border:0;padding:0;margin:0;background:none;
   border-radius:50%;display:grid;place-items:center;cursor:pointer;color:inherit;font:inherit;
 }
 .ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
-.ring circle{fill:none;stroke-width:5}
+.ring circle{fill:none;stroke-width:4.5}
 .track{stroke:var(--panel2)}
 .prog{stroke:var(--col);stroke-linecap:round;transition:stroke-dashoffset .25s linear}
 .face{position:relative;display:flex;flex-direction:column;align-items:center}
-.time{font-family:var(--font-n);font-weight:500;font-size:clamp(2.4rem,19cqi,7rem);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
-.timer.long .time{font-size:clamp(1.9rem,13cqi,5rem)}
-.sub{font-weight:600;color:var(--muted);font-size:clamp(.75rem,3.8cqi,1.05rem);text-transform:uppercase;letter-spacing:.12em;margin-top:10px}
+.time{font-family:var(--font-n);font-weight:500;font-size:23cqi;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.timer.long .time{font-size:16cqi}
+.sub{font-weight:600;color:var(--muted);font-size:max(.75rem,4.2cqi);text-transform:uppercase;letter-spacing:.12em;margin-top:3cqi}
 .ctrl{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
-.go{background:var(--col);border-color:var(--col);color:#0f1218;min-width:120px;justify-content:center;font-weight:700}
+.ctrl .btn{min-height:clamp(42px,5vh,56px);font-size:clamp(.95rem,1.3vw,1.15rem)}
+.ctrl .btn.icon{width:clamp(42px,5vh,56px)}
+.go{background:var(--col);border-color:var(--col);color:#0f1218;min-width:clamp(120px,10vw,170px);justify-content:center;font-weight:700}
 .go:hover{border-color:var(--ink)}
 .timer.warn .time{color:var(--warn)}
 .timer.warn.running .prog{animation:pulse 1s ease-in-out infinite}
@@ -91,12 +96,15 @@ h1{font-weight:700;font-size:clamp(1.25rem,2vw,1.6rem);letter-spacing:-.01em;lin
 .addcard:hover{border-color:var(--muted);color:var(--ink)}
 
 /* Stækkun: einn tímavaki fyllir skjáinn */
-body.solo .timer:not(.focus),body.solo .addcard{display:none}
-body.solo .grid{grid-template-columns:1fr;max-width:1200px;margin:0 auto}
+body.solo .timer:not(.focus){display:none}
 body.solo .timer.focus{border:0;background:transparent}
-body.solo .timer.focus .ring{width:min(100%,max(260px,calc(100vh - 280px)))}
-body.solo .time{font-size:clamp(3rem,min(19cqi,18vh),15rem)}
-body.solo .timer.long .time{font-size:clamp(2.5rem,min(13cqi,12vh),11rem)}
+
+/* Sími og mjór skjár: einn í röð og skrunað niður */
+@media (max-width:700px){
+  body{height:auto;min-height:100vh}
+  .grid{grid-template-columns:1fr!important;grid-auto-rows:auto}
+  .ringbox{flex:none;height:min(82vw,440px)}
+}
 
 /* Stillingagluggi */
 dialog{border:1px solid var(--line);border-radius:18px;padding:22px;width:min(520px,calc(100vw - 32px));background:var(--panel);color:var(--ink);font-family:var(--font-u);box-shadow:0 30px 80px rgba(0,0,0,.4)}
@@ -149,6 +157,7 @@ legend{font-weight:600;padding:0;margin-bottom:6px}
     <div><h1>Tímavaki</h1><small id="place"></small></div>
   </div>
   <div id="clock" aria-label="Klukkan"></div>
+  <button class="btn hdr" id="newTimer" title="Nýr tímavaki"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Nýr</span></button>
   <button class="btn primary hdr" id="startAll" title="Byrja alla (bilslá)"><svg viewBox="0 0 24 24"><path d="M7 5v14l11-7z" fill="currentColor"/></svg><span class="lbl">Byrja alla</span></button>
   <button class="btn hdr" id="pauseAll" title="Hlé á öllum"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span class="lbl">Hlé</span></button>
   <button class="btn hdr" id="resetAll" title="Endurstilla alla"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v5h5"/></svg><span class="lbl">Endurstilla</span></button>
@@ -381,11 +390,11 @@ function renderAll(){
       <div class="head"><h2 class="name"></h2><span class="tools"><span class="tag"></span>
         <button class="mini" data-a="edit" title="Stillingar" aria-label="Stillingar">${ICON.edit}</button>
         <button class="mini" data-a="focus" title="${t.id === focusId ? 'Sýna alla' : 'Stækka'}" aria-label="${t.id === focusId ? 'Sýna alla' : 'Stækka'}">${t.id === focusId ? ICON.unfocus : ICON.focus}</button></span></div>
-      <button class="ring" data-a="toggle" aria-label="Byrja eða gera hlé">
+      <div class="ringbox"><button class="ring" data-a="toggle" aria-label="Byrja eða gera hlé">
         <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="45"/>
           <circle class="prog" cx="50" cy="50" r="45" stroke-dasharray="${C}" stroke-dashoffset="0"/></svg>
         <span class="face"><span class="time"></span><span class="sub"></span></span>
-      </button>
+      </button></div>
       <div class="ctrl">
         <button class="btn go" data-a="toggle"></button>
         <button class="btn icon" data-a="reset" title="Endurstilla" aria-label="Endurstilla">${ICON.reset}</button>
@@ -395,10 +404,14 @@ function renderAll(){
     el.querySelector('.tag').textContent = t.mode === 'up' ? 'Skeiðklukka' : fmt(t.dur, true);
     g.append(el);
   }
-  const add = document.createElement('button');
-  add.className = 'addcard'; add.dataset.a = 'new';
-  add.innerHTML = '<span>+</span>Nýr tímavaki';
-  g.append(add);
+  if(!timers.length){
+    const add = document.createElement('button');
+    add.className = 'addcard'; add.dataset.a = 'new';
+    add.innerHTML = '<span>+</span>Nýr tímavaki';
+    g.append(add);
+  }
+  const n = focusId != null ? 1 : Math.max(1, timers.length);
+  g.style.setProperty('--cols', n <= 3 ? n : n === 4 ? 2 : 3);
   document.body.classList.toggle('solo', focusId != null);
   update();
 }
@@ -471,6 +484,7 @@ $('#startAll').onclick = () => { timers.forEach(t => { if(t.state === 'idle' || 
 $('#pauseAll').onclick = () => { timers.forEach(pause); commit(); };
 $('#resetAll').onclick = () => { timers.forEach(reset); commit(); };
 $('#full').onclick = toggleFull;
+$('#newTimer').onclick = () => openEdit(null);
 $('#share').onclick = share;
 document.addEventListener('pointerdown', () => { audio(); stopAllAlarms(); }, true);
 
