@@ -143,6 +143,35 @@ legend{font-weight:600;padding:0;margin-bottom:6px}
   .timer.warn.running .prog{animation:none}
   .prog{transition:none}
 }
+
+/* Stærri stýringar svo auðveldara sé að vinna í tímavökunum */
+h1{font-size:clamp(1.4rem,2.2vw,1.9rem)}
+#clock{font-size:1.6rem}
+.btn{font-size:1.1rem;min-height:52px;padding:10px 18px;border-radius:12px}
+.btn svg{width:22px;height:22px}
+.btn.icon{width:52px}
+@media (max-width:680px){.btn.hdr{width:48px;min-height:48px}}
+.tag{font-size:1.05rem}
+.mini{width:48px;height:48px;border-radius:10px}
+.mini svg{width:25px;height:25px}
+.ctrl{gap:10px}
+.ctrl .btn{min-height:clamp(54px,6.2vh,70px);font-size:clamp(1.15rem,1.5vw,1.45rem);padding:10px 22px}
+.ctrl .btn.icon{width:clamp(54px,6.2vh,70px);padding:0}
+.ctrl .btn svg{width:27px;height:27px}
+.go{min-width:clamp(140px,11vw,210px)}
+dialog{width:min(660px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:28px;font-size:1.15rem}
+dialog h2{font-size:1.9rem;margin-bottom:18px}
+.presets{gap:8px;margin-bottom:20px}
+.presets button{font-size:1.08rem;padding:11px 15px;border-radius:10px}
+.f{gap:18px}
+.f input[type=text],.f input[type=number],.f select{font-size:1.25rem;padding:12px 14px;min-height:56px}
+.hint{font-size:1rem}
+.swatches{gap:14px}
+.swatches span{width:46px;height:46px}
+.check{gap:14px!important;font-size:1.15rem}
+.check input{width:28px;height:28px}
+.actions{gap:10px;margin-top:26px}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -541,7 +570,7 @@ function openEdit(t){
   $('#dlgTitle').textContent = t ? 'Stillingar' : 'Nýr tímavaki';
   $('#presets').hidden = !!t;
   $('#fDelete').hidden = !t;
-  $('#fName').value = d.name; $('#fMode').value = d.mode;
+  $('#fName').value = t ? d.name : ''; $('#fMode').value = d.mode;
   $('#fMin').value = Math.floor(d.dur/60); $('#fSec').value = d.dur % 60;
   dlg.querySelector(`input[name=col][value="${d.color}"]`).checked = true;
   $('#fSound').value = d.sound; $('#fWarn').checked = d.warn; $('#fLoop').checked = d.loop;
