@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="is">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tímavaki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+/* Tímavaki – margir tímavakar í einu, fyrir kennslustofu, fundi, töflu eða skjávarpa.
+   Dökkt útlit sjálfgefið (sést vel á skjávarpa), ljóst útlit með einum smelli. */
+:root{
+  --bg:#0f1218; --panel:#181c25; --panel2:#222834; --ink:#eef1f6; --muted:#8d95a7; --line:#2b313d; --warn:#ff5d5d;
+  --font-u:'Space Grotesk',system-ui,sans-serif; --font-n:'DM Mono',ui-monospace,monospace; color-scheme:dark;
+}
+:root[data-theme=light]{--bg:#f1f2f5; --panel:#ffffff; --panel2:#eceef2; --ink:#141821; --muted:#5b6375; --line:#d8dce3; --warn:#d62828; color-scheme:light}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--font-u)}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+@media (min-width:700px){header{padding:14px 24px}}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.brand svg{width:34px;height:34px;flex:none}
+h1{font-weight:700;font-size:clamp(1.25rem,2vw,1.6rem);letter-spacing:-.01em;line-height:1;margin:0}
+.brand small{display:block;color:var(--muted);font-weight:500;font-size:.85rem;margin-top:3px}
+#clock{font-family:var(--font-n);font-size:1.35rem;color:var(--muted);padding:0 10px;font-variant-numeric:tabular-nums}
+.btn{
+  font:inherit;font-weight:600;font-size:.95rem;color:var(--ink);background:var(--panel2);border:1px solid var(--line);
+  border-radius:10px;min-height:42px;padding:8px 14px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  transition:border-color .15s,transform .08s;
+}
+.btn svg{width:19px;height:19px;flex:none}
+.btn:hover{border-color:var(--muted)}
+.btn:active{transform:scale(.97)}
+.btn:focus-visible,.ring:focus-visible,.addcard:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.icon{width:42px;padding:0;justify-content:center}
+@media (max-width:680px){.btn .lbl{display:none}.btn.hdr{width:42px;padding:0;justify-content:center}}
+
+.grid{display:grid;gap:16px;padding:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+@media (min-width:700px){.grid{padding:24px;gap:20px}}
+
+.timer{
+  --col:#60a5fa; container-type:inline-size; position:relative;
+  background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:16px;
+  display:flex;flex-direction:column;align-items:center;gap:14px;transition:border-color .2s;
+}
+.timer.running{border-color:var(--col);border-color:color-mix(in srgb,var(--col) 55%,var(--line))}
+.head{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.name{font-weight:700;font-size:clamp(1.1rem,7cqi,1.9rem);line-height:1.15;margin:0;overflow-wrap:anywhere;display:flex;align-items:center;gap:9px}
+.name::before{content:'';width:.55em;height:.55em;border-radius:50%;background:var(--col);flex:none}
+.tools{display:flex;align-items:center;gap:2px;flex:none}
+.tag{font-family:var(--font-n);font-size:.85rem;color:var(--muted);white-space:nowrap;margin-right:6px}
+.mini{width:34px;height:34px;border:0;border-radius:8px;background:none;color:var(--muted);display:grid;place-items:center;cursor:pointer;padding:0}
+.mini svg{width:18px;height:18px}
+.mini:hover{background:var(--panel2);color:var(--ink)}
+.mini:focus-visible{outline:2px solid var(--ink)}
+.ring{
+  position:relative;width:min(100%,360px);aspect-ratio:1;border:0;padding:0;margin:0;background:none;
+  border-radius:50%;display:grid;place-items:center;cursor:pointer;color:inherit;font:inherit;
+}
+.ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:5}
+.track{stroke:var(--panel2)}
+.prog{stroke:var(--col);stroke-linecap:round;transition:stroke-dashoffset .25s linear}
+.face{position:relative;display:flex;flex-direction:column;align-items:center}
+.time{font-family:var(--font-n);font-weight:500;font-size:clamp(2.4rem,19cqi,7rem);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.timer.long .time{font-size:clamp(1.9rem,13cqi,5rem)}
+.sub{font-weight:600;color:var(--muted);font-size:clamp(.75rem,3.8cqi,1.05rem);text-transform:uppercase;letter-spacing:.12em;margin-top:10px}
+.ctrl{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.go{background:var(--col);border-color:var(--col);color:#0f1218;min-width:120px;justify-content:center;font-weight:700}
+.go:hover{border-color:var(--ink)}
+.timer.warn .time{color:var(--warn)}
+.timer.warn.running .prog{animation:pulse 1s ease-in-out infinite}
+.timer.done{animation:glow 1s steps(2,jump-none) infinite}
+.timer.done .sub{color:var(--ink)}
+.timer.ding{animation:glow .5s steps(2,jump-none) 4}
+@keyframes glow{
+  from{background:var(--panel);box-shadow:none}
+  to{background:color-mix(in srgb,var(--col) 24%,var(--panel));box-shadow:0 0 0 3px var(--col),0 0 44px color-mix(in srgb,var(--col) 55%,transparent)}
+}
+@keyframes pulse{50%{opacity:.3}}
+
+.addcard{
+  border:1px dashed var(--line);background:transparent;border-radius:18px;min-height:260px;
+  font:inherit;font-weight:600;font-size:1.05rem;color:var(--muted);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:border-color .15s,color .15s;
+}
+.addcard span{font-size:2.6rem;font-weight:300;line-height:1}
+.addcard:hover{border-color:var(--muted);color:var(--ink)}
+
+/* Stækkun: einn tímavaki fyllir skjáinn */
+body.solo .timer:not(.focus),body.solo .addcard{display:none}
+body.solo .grid{grid-template-columns:1fr;max-width:1200px;margin:0 auto}
+body.solo .timer.focus{border:0;background:transparent}
+body.solo .timer.focus .ring{width:min(100%,max(260px,calc(100vh - 280px)))}
+body.solo .time{font-size:clamp(3rem,min(19cqi,18vh),15rem)}
+body.solo .timer.long .time{font-size:clamp(2.5rem,min(13cqi,12vh),11rem)}
+
+/* Stillingagluggi */
+dialog{border:1px solid var(--line);border-radius:18px;padding:22px;width:min(520px,calc(100vw - 32px));background:var(--panel);color:var(--ink);font-family:var(--font-u);box-shadow:0 30px 80px rgba(0,0,0,.4)}
+dialog::backdrop{background:rgba(5,7,12,.6)}
+dialog h2{font-weight:700;margin:0 0 14px;font-size:1.4rem}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.presets button{font:inherit;font-weight:500;font-size:.88rem;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--panel2);color:var(--ink);cursor:pointer}
+.presets button:hover{border-color:var(--muted)}
+.f{display:grid;gap:14px}
+.f label{font-weight:600;display:grid;gap:5px}
+.f input[type=text],.f input[type=number],.f select{font:inherit;font-size:1rem;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--ink);width:100%}
+.f input:focus,.f select:focus{outline:2px solid var(--ink);outline-offset:1px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.swatches label{display:block}
+.swatches input{position:absolute;opacity:0;pointer-events:none}
+.swatches span{display:block;width:32px;height:32px;border-radius:50%;background:var(--c);cursor:pointer}
+.swatches input:checked+span{outline:2px solid var(--ink);outline-offset:3px}
+.swatches input:focus-visible+span{outline:2px dashed var(--ink);outline-offset:3px}
+.check{display:flex!important;align-items:center;gap:10px!important;font-weight:400!important}
+.check input{width:20px;height:20px;accent-color:var(--ink)}
+.hint{font-weight:400;color:var(--muted);font-size:.85rem}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.actions .sp{flex:1}
+.btn.danger{color:var(--warn)}
+fieldset{border:0;padding:0;margin:0}
+fieldset[disabled]{opacity:.35}
+legend{font-weight:600;padding:0;margin-bottom:6px}
+
+#toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,120px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:600;max-width:calc(100vw - 32px);transition:transform .25s;z-index:10}
+#toast.show{transform:translate(-50%,0)}
+
+@media (prefers-reduced-motion:reduce){
+  .timer.done,.timer.ding{animation:none;background:color-mix(in srgb,var(--col) 24%,var(--panel));box-shadow:0 0 0 3px var(--col)}
+  .timer.warn.running .prog{animation:none}
+  .prog{transition:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="24" r="19" fill="none" stroke="currentColor" stroke-opacity=".18" stroke-width="5"/>
+      <path d="M24 5a19 19 0 0 1 16.5 28.5" fill="none" stroke="#4ade80" stroke-width="5" stroke-linecap="round"/>
+      <path d="M40.5 33.5A19 19 0 0 1 14 40.2" fill="none" stroke="#60a5fa" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="24" cy="24" r="3.5" fill="currentColor"/>
+    </svg>
+    <div><h1>Tímavaki</h1><small id="place"></small></div>
+  </div>
+  <div id="clock" aria-label="Klukkan"></div>
+  <button class="btn primary hdr" id="startAll" title="Byrja alla (bilslá)"><svg viewBox="0 0 24 24"><path d="M7 5v14l11-7z" fill="currentColor"/></svg><span class="lbl">Byrja alla</span></button>
+  <button class="btn hdr" id="pauseAll" title="Hlé á öllum"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span class="lbl">Hlé</span></button>
+  <button class="btn hdr" id="resetAll" title="Endurstilla alla"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v5h5"/></svg><span class="lbl">Endurstilla</span></button>
+  <button class="btn hdr" id="share" title="Afrita tengil með þessum tímavökum"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span class="lbl">Deila</span></button>
+  <button class="btn hdr" id="full" title="Fullskjár (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="lbl">Fullskjár</span></button>
+  <button class="btn hdr" id="theme" title="Skipta á milli ljóss og dökks útlits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg><span class="lbl">Útlit</span></button>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<dialog id="dlg">
+  <form method="dialog" id="form">
+    <h2 id="dlgTitle">Nýr tímavaki</h2>
+    <div class="presets" id="presets"></div>
+    <div class="f">
+      <label>Heiti <input type="text" id="fName" maxlength="40" required></label>
+      <label>Tegund
+        <select id="fMode">
+          <option value="down">Niðurtalning</option>
+          <option value="up">Skeiðklukka (telur upp)</option>
+        </select>
+      </label>
+      <fieldset id="fDur">
+        <legend>Tími</legend>
+        <div class="row2">
+          <label><span class="hint">Mínútur</span><input type="number" id="fMin" min="0" max="999" inputmode="numeric"></label>
+          <label><span class="hint">Sekúndur</span><input type="number" id="fSec" min="0" max="59" inputmode="numeric"></label>
+        </div>
+      </fieldset>
+      <div>
+        <div style="font-weight:700;margin-bottom:6px">Litur</div>
+        <div class="swatches" id="fColors"></div>
+      </div>
+      <div class="row3">
+        <label>Hljóð í lokin <select id="fSound"></select></label>
+        <button type="button" class="btn" id="fTest">Prófa</button>
+      </div>
+      <label class="check"><input type="checkbox" id="fWarn"> Stutt viðvörun einni mínútu fyrir lok</label>
+      <label class="check"><input type="checkbox" id="fLoop"> <span>Byrja sjálfkrafa aftur <span class="hint">– t.d. fyrir stöðvavinnu</span></span></label>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn danger" id="fDelete">Eyða</button>
+      <span class="sp"></span>
+      <button type="button" class="btn" id="fCancel">Hætta við</button>
+      <button type="submit" class="btn primary">Vista</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ===== Stillingar sem auðvelt er að breyta ===== */
+const STADUR = '';                       // valkvæður texti undir heitinu, t.d. nafn skóla eða stofu
+const FORSTILLINGAR = [                   // flýtihnappar þegar nýr tímavaki er búinn til
+  ['Frímínútur', 20*60], ['Lestur', 15*60], ['Hópavinna', 10*60], ['Nesti', 15*60],
+  ['Tiltekt', 5*60], ['Stöðvar', 8*60], ['Kyrrðarstund', 3*60], ['Próf', 40*60]
+];
+const SJALFGEFID = [{name:'Lestur', dur:15*60, color:3}, {name:'Frímínútur', dur:20*60, color:1}];
+/* =============================================== */
+
+const COLORS = [['Rauður','#ff6b6b'],['Grænn','#4ade80'],['Gulur','#facc15'],['Blár','#60a5fa'],
+                ['Fjólublár','#c084fc'],['Appelsínugulur','#fb923c'],['Bleikur','#f472b6'],['Grænblár','#2dd4bf']];
+const SOUNDS = {bjalla:'Bjalla', gong:'Gong', flaut:'Flaut', ekkert:'Ekkert hljóð'};
+const KEY = 'timavaki.v1';
+const C = 2*Math.PI*45;
+const $ = s => document.querySelector(s);
+
+let timers = [], uid = 1, focusId = null, editing = null;
+
+function make(o = {}){
+  const dur = Math.max(1, Math.round(Number(o.dur) || 600));
+  const color = COLORS[o.color] ? Number(o.color) : timers.length % COLORS.length;
+  return { id: uid++, name: String(o.name || 'Tímavaki').slice(0,40), dur, color,
+    mode: o.mode === 'up' ? 'up' : 'down', sound: SOUNDS[o.sound] ? o.sound : 'bjalla',
+    warn: o.warn !== false, loop: !!o.loop,
+    state: 'idle', total: dur*1000, remain: dur*1000, endAt: 0, startAt: 0, elapsed: 0, warned: false, rounds: 1 };
+}
+const cfg = t => [t.name, t.dur, t.color, t.mode, t.sound, t.warn, t.loop];
+const fromCfg = a => make(Array.isArray(a) ? {name:a[0],dur:a[1],color:a[2],mode:a[3],sound:a[4],warn:a[5],loop:a[6]} : a);
+const find = id => timers.find(t => t.id === id);
+
+/* ---------- Vistun og hleðsla ---------- */
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(timers.map(t => ({
+    c: cfg(t), state: t.state, total: t.total, remain: t.remain, endAt: t.endAt,
+    startAt: t.startAt, elapsed: t.elapsed, warned: t.warned, rounds: t.rounds })))); }catch(e){}
+}
+function toB64(s){ return btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function fromB64(s){ s = s.replace(/-/g,'+').replace(/_/g,'/'); return new TextDecoder().decode(Uint8Array.from(atob(s), c => c.charCodeAt(0))); }
+
+function load(){
+  const q = new URLSearchParams(location.search);
+  let list = null;
+  try{
+    if(q.get('s')) list = JSON.parse(fromB64(q.get('s'))).map(fromCfg);
+    else if(q.get('t')) list = q.get('t').split(',').filter(p => p.trim()).map((p, i) => {
+      const [n, m, s] = p.split(':');
+      return make({name: n.trim(), dur: ((parseFloat(m)||0)*60 + (parseInt(s)||0)) || 60, color: i % COLORS.length});
+    });
+  }catch(e){ list = null; }
+  if(list && list.length){
+    timers = list; save();
+    try{ history.replaceState(null, '', location.pathname + location.hash); }catch(e){}
+    return;
+  }
+  try{
+    const raw = JSON.parse(localStorage.getItem(KEY));
+    if(Array.isArray(raw) && raw.length){
+      const now = Date.now();
+      timers = raw.map(r => {
+        const t = fromCfg(r.c);
+        if(['idle','run','pause','done'].includes(r.state)){
+          Object.assign(t, {state:r.state, total:+r.total||t.total, remain:+r.remain||0, endAt:+r.endAt||0,
+            startAt:+r.startAt||0, elapsed:+r.elapsed||0, warned:!!r.warned, rounds:+r.rounds||1});
+          if(t.state==='idle') t.remain = t.total;
+          if(t.state==='run' && t.mode==='down' && t.endAt <= now){
+            if(t.loop){ const n = Math.ceil((now - t.endAt + 1) / t.total); t.endAt += n*t.total; t.rounds += n; }
+            else { t.state = 'done'; t.remain = 0; }
+          }
+        }
+        return t;
+      });
+      return;
+    }
+  }catch(e){}
+  timers = SJALFGEFID.map(make);
+}
+
+/* ---------- Hljóð (búið til í vafranum, engar hljóðskrár) ---------- */
+let ac = null;
+function audio(){
+  if(!ac){ try{ ac = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return null; } }
+  if(ac.state === 'suspended') ac.resume();
+  return ac;
+}
+function tone(f, at, dur, type = 'sine', vol = .3){
+  const a = audio(); if(!a) return;
+  const t0 = a.currentTime + at, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .01);
+  g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+  o.connect(g).connect(a.destination); o.start(t0); o.stop(t0 + dur + .05);
+}
+function play(kind, short){
+  const hits = short ? [0] : [0, .38, .76];
+  if(kind === 'bjalla') hits.forEach(s => { tone(880,s,1.3,'sine',.35); tone(1320,s,.9,'sine',.12); tone(2210,s,.3,'sine',.05); });
+  else if(kind === 'gong'){ const d = short ? 1.2 : 3.6; tone(196,0,d,'sine',.5); tone(294,0,d*.85,'sine',.25); tone(392,0,d*.5,'triangle',.08); }
+  else if(kind === 'flaut') hits.forEach(s => tone(1046,s*.65,.18,'square',.12));
+}
+const alarms = {};
+function startAlarm(t){
+  stopAlarm(t);
+  if(t.sound === 'ekkert') return;
+  play(t.sound); let n = 1;
+  alarms[t.id] = setInterval(() => {
+    if(++n > 8 || t.state !== 'done') return stopAlarm(t);
+    play(t.sound);
+  }, 2600);
+}
+function stopAlarm(t){ clearInterval(alarms[t.id]); delete alarms[t.id]; }
+function stopAllAlarms(){ timers.forEach(stopAlarm); }
+
+/* ---------- Skjár haldinn vakandi meðan tímavaki er í gangi ---------- */
+let lock = null;
+async function wake(){
+  const any = timers.some(t => t.state === 'run');
+  try{
+    if(any && !lock && 'wakeLock' in navigator){ lock = await navigator.wakeLock.request('screen'); lock.addEventListener('release', () => lock = null); }
+    else if(!any && lock){ await lock.release(); lock = null; }
+  }catch(e){}
+}
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') wake(); });
+
+/* ---------- Tímareikningur ---------- */
+const rem = (t, now) => t.state === 'run' ? Math.max(0, t.endAt - now) : t.state === 'done' ? 0 : t.remain;
+const elap = (t, now) => t.state === 'run' ? t.elapsed + now - t.startAt : t.elapsed;
+function fmt(sec, up){
+  sec = Math.max(0, up ? Math.ceil(sec - 1e-6) : Math.floor(sec));
+  const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60;
+  return (h ? h + ':' + String(m).padStart(2,'0') : m) + ':' + String(s).padStart(2,'0');
+}
+
+function start(t){
+  audio();
+  if(t.state === 'run') return;
+  if(t.state === 'done') reset(t, true);
+  const now = Date.now();
+  if(t.mode === 'down'){ t.endAt = now + t.remain; if(t.remain > 60000) t.warned = false; }
+  else t.startAt = now;
+  t.state = 'run';
+}
+function pause(t){
+  if(t.state !== 'run') return;
+  const now = Date.now();
+  if(t.mode === 'down') t.remain = Math.max(0, t.endAt - now);
+  else t.elapsed += now - t.startAt;
+  t.state = 'pause';
+}
+function reset(t){
+  stopAlarm(t);
+  Object.assign(t, {state:'idle', total:t.dur*1000, remain:t.dur*1000, elapsed:0, warned:false, rounds:1});
+}
+function addMinute(t){
+  if(t.mode !== 'down') return;
+  if(t.state === 'done'){ stopAlarm(t); t.remain = 60000; t.total = 60000; t.state = 'pause'; start(t); return; }
+  if(t.state === 'run'){ t.endAt += 60000; t.total = Math.max(t.total, t.endAt - Date.now()); }
+  else { t.remain += 60000; t.total = Math.max(t.total, t.remain); }
+  t.warned = false;
+}
+const commit = () => { save(); update(); wake(); };
+
+/* ---------- Teikning ---------- */
+const ICON = {
+  reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v5h5"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>',
+  focus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+  unfocus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>'
+};
+
+function renderAll(){
+  const g = $('#grid'); g.innerHTML = '';
+  if(focusId != null && !find(focusId)) focusId = null;
+  for(const t of timers){
+    const el = document.createElement('article');
+    el.className = 'timer' + (t.id === focusId ? ' focus' : '');
+    el.dataset.id = t.id;
+    el.style.setProperty('--col', COLORS[t.color][1]);
+    el.innerHTML = `
+      <div class="head"><h2 class="name"></h2><span class="tools"><span class="tag"></span>
+        <button class="mini" data-a="edit" title="Stillingar" aria-label="Stillingar">${ICON.edit}</button>
+        <button class="mini" data-a="focus" title="${t.id === focusId ? 'Sýna alla' : 'Stækka'}" aria-label="${t.id === focusId ? 'Sýna alla' : 'Stækka'}">${t.id === focusId ? ICON.unfocus : ICON.focus}</button></span></div>
+      <button class="ring" data-a="toggle" aria-label="Byrja eða gera hlé">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="45"/>
+          <circle class="prog" cx="50" cy="50" r="45" stroke-dasharray="${C}" stroke-dashoffset="0"/></svg>
+        <span class="face"><span class="time"></span><span class="sub"></span></span>
+      </button>
+      <div class="ctrl">
+        <button class="btn go" data-a="toggle"></button>
+        <button class="btn icon" data-a="reset" title="Endurstilla" aria-label="Endurstilla">${ICON.reset}</button>
+        ${t.mode === 'down' ? '<button class="btn" data-a="plus" title="Bæta einni mínútu við">+1 mín</button>' : ''}
+      </div>`;
+    el.querySelector('.name').textContent = t.name;
+    el.querySelector('.tag').textContent = t.mode === 'up' ? 'Skeiðklukka' : fmt(t.dur, true);
+    g.append(el);
+  }
+  const add = document.createElement('button');
+  add.className = 'addcard'; add.dataset.a = 'new';
+  add.innerHTML = '<span>+</span>Nýr tímavaki';
+  g.append(add);
+  document.body.classList.toggle('solo', focusId != null);
+  update();
+}
+
+function update(){
+  const now = Date.now(); let soon = null;
+  for(const t of timers){
+    const el = document.querySelector(`.timer[data-id="${t.id}"]`); if(!el) continue;
+    let txt, frac, sub;
+    if(t.mode === 'down'){
+      const r = rem(t, now);
+      txt = fmt(r/1000, true); frac = t.total ? r/t.total : 0;
+      if(t.state === 'run' && (!soon || r < soon.r)) soon = {r, t};
+      const warnAt = t.total > 90000 ? 60000 : 10000;
+      el.classList.toggle('warn', t.state === 'run' && r <= warnAt);
+      sub = {idle:'Tilbúinn', run:'Í gangi', pause:'Í hléi', done:'Búið!'}[t.state];
+      if(t.loop) sub += ` · umferð ${t.rounds}`;
+    } else {
+      const e = elap(t, now);
+      txt = fmt(e/1000, false); frac = (e % 60000) / 60000;
+      sub = {idle:'Tilbúin', run:'Í gangi', pause:'Í hléi', done:'Í hléi'}[t.state];
+    }
+    el.querySelector('.time').textContent = txt;
+    el.querySelector('.sub').textContent = sub;
+    el.querySelector('.prog').style.strokeDashoffset = C * (1 - Math.min(1, Math.max(0, frac)));
+    el.classList.toggle('long', txt.length > 5);
+    el.classList.toggle('running', t.state === 'run');
+    el.classList.toggle('done', t.state === 'done');
+    el.querySelector('.go').textContent =
+      t.state === 'run' ? 'Hlé' : t.state === 'done' ? 'Aftur' : t.state === 'pause' ? 'Halda áfram' : 'Byrja';
+  }
+  document.title = soon ? `${fmt(soon.r/1000, true)} · ${soon.t.name}` : 'Tímavaki';
+  $('#clock').textContent = new Date().toLocaleTimeString('is-IS', {hour:'2-digit', minute:'2-digit', hour12:false});
+}
+
+function tick(){
+  const now = Date.now(); let changed = false;
+  for(const t of timers){
+    if(t.state !== 'run' || t.mode !== 'down') continue;
+    const r = t.endAt - now;
+    if(t.warn && !t.warned && t.total > 90000 && r <= 60000 && r > 0){ t.warned = true; play(t.sound, true); changed = true; }
+    if(r <= 0){
+      if(t.loop){
+        while(t.endAt <= now){ t.endAt += t.total; t.rounds++; }
+        t.warned = false; play(t.sound);
+        const el = document.querySelector(`.timer[data-id="${t.id}"]`);
+        if(el){ el.classList.remove('ding'); void el.offsetWidth; el.classList.add('ding'); }
+      } else { t.state = 'done'; t.remain = 0; startAlarm(t); }
+      changed = true;
+    }
+  }
+  if(changed){ save(); wake(); }
+  update();
+}
+
+/* ---------- Aðgerðir ---------- */
+$('#grid').addEventListener('click', e => {
+  const b = e.target.closest('[data-a]'); if(!b) return;
+  const a = b.dataset.a;
+  if(a === 'new') return openEdit(null);
+  const t = find(+b.closest('.timer').dataset.id); if(!t) return;
+  if(a === 'toggle'){ if(t.state === 'run') pause(t); else start(t); }
+  else if(a === 'reset') reset(t);
+  else if(a === 'plus') addMinute(t);
+  else if(a === 'edit') return openEdit(t);
+  else if(a === 'focus'){ focusId = focusId === t.id ? null : t.id; renderAll(); }
+  commit();
+});
+$('#startAll').onclick = () => { timers.forEach(t => { if(t.state === 'idle' || t.state === 'pause') start(t); }); commit(); };
+$('#pauseAll').onclick = () => { timers.forEach(pause); commit(); };
+$('#resetAll').onclick = () => { timers.forEach(reset); commit(); };
+$('#full').onclick = toggleFull;
+$('#share').onclick = share;
+document.addEventListener('pointerdown', () => { audio(); stopAllAlarms(); }, true);
+
+function toggleFull(){
+  try{
+    if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  }catch(e){}
+}
+function share(){
+  const url = location.href.split(/[?#]/)[0] + '?s=' + toB64(JSON.stringify(timers.map(cfg)));
+  const ok = () => toast('Tengill afritaður. Hann opnar þessa tímavaka hvar sem er.');
+  if(navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(url).then(ok, () => prompt('Afritaðu tengilinn:', url));
+  else prompt('Afritaðu tengilinn:', url);
+}
+let toastTimer;
+function toast(msg){
+  const el = $('#toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+const typing = e => e.target.closest('input,select,textarea') || $('#dlg').open;
+document.addEventListener('keydown', e => {
+  if(typing(e)) return;
+  if(e.code === 'Space'){
+    e.preventDefault(); stopAllAlarms();
+    if(timers.some(t => t.state === 'run')) $('#pauseAll').click(); else $('#startAll').click();
+  } else if(e.key === 'f' || e.key === 'F') toggleFull();
+  else if(e.key === 'Escape' && focusId != null && !document.fullscreenElement){ focusId = null; renderAll(); }
+});
+document.addEventListener('keyup', e => { if(e.code === 'Space' && !typing(e)) e.preventDefault(); });
+
+/* ---------- Stillingagluggi ---------- */
+const dlg = $('#dlg');
+$('#fColors').innerHTML = COLORS.map(([n, c], i) =>
+  `<label title="${n}"><input type="radio" name="col" value="${i}" aria-label="${n}"><span style="--c:${c}"></span></label>`).join('');
+$('#fSound').innerHTML = Object.entries(SOUNDS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+$('#presets').innerHTML = FORSTILLINGAR.map(([n, s], i) => `<button type="button" data-i="${i}">${n} · ${fmt(s, true)}</button>`).join('');
+$('#presets').onclick = e => {
+  const b = e.target.closest('[data-i]'); if(!b) return;
+  const [n, s] = FORSTILLINGAR[b.dataset.i];
+  $('#fName').value = n; $('#fMin').value = Math.floor(s/60); $('#fSec').value = s % 60;
+  $('#fMode').value = 'down'; syncMode();
+};
+const syncMode = () => { $('#fDur').disabled = $('#fMode').value === 'up'; };
+$('#fMode').onchange = syncMode;
+$('#fTest').onclick = () => play($('#fSound').value);
+$('#fCancel').onclick = () => dlg.close();
+
+function openEdit(t){
+  editing = t;
+  const d = t || make({name:'', dur:600});
+  if(!t) uid--; // make() tók númer sem var ekki notað
+  $('#dlgTitle').textContent = t ? 'Stillingar' : 'Nýr tímavaki';
+  $('#presets').hidden = !!t;
+  $('#fDelete').hidden = !t;
+  $('#fName').value = d.name; $('#fMode').value = d.mode;
+  $('#fMin').value = Math.floor(d.dur/60); $('#fSec').value = d.dur % 60;
+  dlg.querySelector(`input[name=col][value="${d.color}"]`).checked = true;
+  $('#fSound').value = d.sound; $('#fWarn').checked = d.warn; $('#fLoop').checked = d.loop;
+  syncMode();
+  dlg.showModal();
+  if(!t) $('#fName').focus();
+}
+$('#form').addEventListener('submit', e => {
+  e.preventDefault();
+  const o = {
+    name: $('#fName').value.trim() || 'Tímavaki',
+    dur: (Math.max(0, parseInt($('#fMin').value) || 0)) * 60 + Math.min(59, Math.max(0, parseInt($('#fSec').value) || 0)),
+    color: +(dlg.querySelector('input[name=col]:checked') || {value:0}).value,
+    mode: $('#fMode').value, sound: $('#fSound').value, warn: $('#fWarn').checked, loop: $('#fLoop').checked
+  };
+  if(o.dur < 1) o.dur = 60;
+  if(editing){
+    const changed = editing.dur !== o.dur || editing.mode !== o.mode;
+    Object.assign(editing, o);
+    if(changed) reset(editing);
+  } else timers.push(make(o));
+  dlg.close(); renderAll(); commit();
+});
+$('#fDelete').onclick = () => {
+  if(!editing || !confirm(`Eyða „${editing.name}“?`)) return;
+  stopAlarm(editing);
+  timers = timers.filter(t => t !== editing);
+  dlg.close(); renderAll(); commit();
+};
+
+/* ---------- Ræsing ---------- */
+$('#place').textContent = STADUR; $('#place').hidden = !STADUR;
+const THEME_KEY = 'timavaki.utlit';
+let theme = null;
+try{ theme = localStorage.getItem(THEME_KEY); }catch(e){}
+if(theme !== 'light' && theme !== 'dark') theme = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+document.documentElement.dataset.theme = theme;
+$('#theme').onclick = () => {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = theme;
+  try{ localStorage.setItem(THEME_KEY, theme); }catch(e){}
+};
+load();
+timers.forEach(t => { if(t.id >= uid) uid = t.id + 1; });
+renderAll();
+wake();
+setInterval(tick, 200);
+</script>
+</body>
+</html>
